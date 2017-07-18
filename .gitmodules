@@ -1,0 +1,6 @@
+[submodule "vendors/spdlog"]
+	path = vendors/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "vendors/gflags"]
+	path = vendors/gflags
+	url = https://github.com/gflags/gflags

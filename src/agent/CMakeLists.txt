@@ -1,0 +1,42 @@
+set (TARGET_NAME agent)
+
+project(${TARGET_NAME})
+
+generate_build_info(
+    "${PROJECT_SOURCE_DIR}/inc/buildversion.h.in"
+    "${PROJECT_BINARY_DIR}/buildversion.h"
+)
+
+set (SOURCES 
+	src/app.cpp
+	src/app.h
+	src/stdafx.cpp
+	src/stdafx.h
+	res/version.rc)
+
+add_executable(${TARGET_NAME} ${SOURCES})
+
+target_include_directories (${TARGET_NAME}
+    PRIVATE ${GMON_VENDORS_INCLUDES}
+)
+target_include_directories (${TARGET_NAME}
+    PRIVATE ${GMON_PROJECT_INCLUDES}
+)
+
+include_directories(inc)
+include_directories(src)
+include_directories("${PROJECT_BINARY_DIR}")
+
+if(MSVC)
+	set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+	target_compile_options (${TARGET_NAME}
+    	PRIVATE /MP
+	)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Yustdafx.h")
+	set_source_files_properties(src/stdafx.cpp
+	    PROPERTIES COMPILE_FLAGS "/Ycstdafx.h")
+
+endif(MSVC)
+
+add_definitions(-DUNICODE -D_UNICODE)
+target_link_libraries (${TARGET_NAME} gflags nvml)
