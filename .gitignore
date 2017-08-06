@@ -8,7 +8,6 @@ _lib
 *.exp
 *.pdb
 *.ilk
-*.lib
 Debug
 Release
 /cm-build

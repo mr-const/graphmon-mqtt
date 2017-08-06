@@ -12,6 +12,8 @@ set (SOURCES
 	src/app.h
 	src/stdafx.cpp
 	src/stdafx.h
+	src/manager_mqtt.cpp
+	inc/manager_mqtt.h
 	res/version.rc)
 
 add_executable(${TARGET_NAME} ${SOURCES})
@@ -39,4 +41,14 @@ if(MSVC)
 endif(MSVC)
 
 add_definitions(-DUNICODE -D_UNICODE)
-target_link_libraries (${TARGET_NAME} gflags nvml)
+
+IF (WIN32)
+  SET(OPENSSL_SEARCH_PATH "C:/OpenSSL-Win64")
+ENDIF ()
+
+FIND_LIBRARY(OPENSSL_LIB NAMES ssl libssl ssleay32
+    HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
+FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
+    HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
+
+target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3as-static ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ws2_32)

@@ -1,0 +1,1 @@
+Download Win32 SSL here: http://www.slproweb.com/products/Win32OpenSSL.html
