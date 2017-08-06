@@ -4,6 +4,16 @@
 #include "spdlog/sinks/msvc_sink.h"
 #include "spdlog/logger.h"
 
+void onNvmlDataReceived(const NvmlManager::Data& data)
+{
+	MqttManager::publish("gpu0", data.toJson());
+}
+
+void onConnected()
+{
+	NvmlManager::readAll();
+}
+
 int main(int argc, char * const argv[])
 {
 	std::vector<spdlog::sink_ptr> sinks;
@@ -23,8 +33,14 @@ int main(int argc, char * const argv[])
 	MqttManager::InitParams params;
 	params.connString = "tcp://raspberrypi.lan:1883";
 	params.clientId = "Graphmon";
-	MqttManager::init(params);
+	MqttManager::create(params);
 
+	NvmlManager::create();
+	NvmlManager::init();
+
+	NvmlManager::subscribeToData(onNvmlDataReceived);
+
+	MqttManager::subscribeOnConnected(onConnected);
 	MqttManager::connect();
 	MSG msg;
 

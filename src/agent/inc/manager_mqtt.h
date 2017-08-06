@@ -10,16 +10,27 @@ public:
 		std::string clientId;
 	};
 
-	static bool init(const InitParams& params);
-	static void term();
+	typedef void(*ConnectHandler)();
+
+
+	static bool create(const InitParams& params);
+	static void destroy();
 
 	static bool connect();
 	static bool disconnect();
 
+	static void subscribeOnConnected(ConnectHandler handler)
+	{
+		_class->_connectHandler = handler;
+	}
+
+	static void publish(const std::string& topic, const std::string& payload);
 private:
 	static MqttManager* _class;
 	MQTTAsync _client;
 	bool _disconnected;
+
+	ConnectHandler _connectHandler;
 
 	MqttManager(const InitParams& params);
 	static void _onConnect(void* context, MQTTAsync_successData* response);

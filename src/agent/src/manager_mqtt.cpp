@@ -2,7 +2,7 @@
 
 MqttManager* MqttManager::_class = nullptr;
 
-bool MqttManager::init(const InitParams& params)
+bool MqttManager::create(const InitParams& params)
 {
 	if (_class == nullptr)
 	{
@@ -11,6 +11,12 @@ bool MqttManager::init(const InitParams& params)
 	}
 
 	return false;
+}
+
+void MqttManager::destroy()
+{
+	delete _class;
+	_class = nullptr;
 }
 
 bool MqttManager::connect()
@@ -30,6 +36,27 @@ bool MqttManager::connect()
 	}
 	logger->info("MQTT Connection to broker started");
 	return true;
+}
+
+void MqttManager::publish(const std::string& topic, const std::string& payload)
+{
+	MQTTAsync_responseOptions opts = MQTTAsync_responseOptions_initializer;
+	MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
+	int rc;
+
+	opts.context = _class->_client;
+
+	pubmsg.payload = (void*)payload.c_str();
+	pubmsg.payloadlen = (int)payload.length();
+	pubmsg.qos = 1;
+	pubmsg.retained = 0;
+
+	if ((rc = MQTTAsync_sendMessage(_class->_client, ("tele/graphmon/" + topic).c_str(), &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
+	{
+		logger->error("Failed to start sendMessage: {}", rc);
+		// exit(EXIT_FAILURE);
+	}
+
 }
 
 MqttManager::MqttManager(const InitParams& params) :
@@ -77,27 +104,10 @@ void MqttManager::_onConnectFailure(void* context, MQTTAsync_failureData* respon
 
 void MqttManager::_onConnect(void* context, MQTTAsync_successData* response)
 {
-	MQTTAsync client = (MQTTAsync)context;
-	MQTTAsync_responseOptions opts = MQTTAsync_responseOptions_initializer;
-	MQTTAsync_message pubmsg = MQTTAsync_message_initializer;
-//	int rc;
-
 	logger->info("Connected to MQTT Broker at: {} version {}", response->alt.connect.serverURI, response->alt.connect.MQTTVersion);
-
-//	opts.onSuccess = onSend;
-// 	opts.context = client;
-// 
-// 	pubmsg.payload = PAYLOAD;
-// 	pubmsg.payloadlen = strlen(PAYLOAD);
-// 	pubmsg.qos = QOS;
-// 	pubmsg.retained = 0;
-// 	deliveredtoken = 0;
-// 
-// 	if ((rc = MQTTAsync_sendMessage(client, TOPIC, &pubmsg, &opts)) != MQTTASYNC_SUCCESS)
-// 	{
-// 		logger->error("Failed to start sendMessage: {}", rc);
-// 		// exit(EXIT_FAILURE);
-// 	}
+	_class->_disconnected = false;
+	if (_class->_connectHandler)
+		_class->_connectHandler();
 }
 
 int MqttManager::_messageArrived(void* context, char* topicName, int topicLen, MQTTAsync_message* message)

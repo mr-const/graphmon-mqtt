@@ -13,7 +13,9 @@ set (SOURCES
 	src/stdafx.cpp
 	src/stdafx.h
 	src/manager_mqtt.cpp
+	src/manager_nvml.cpp
 	inc/manager_mqtt.h
+	inc/manager_nvml.h
 	res/version.rc)
 
 add_executable(${TARGET_NAME} ${SOURCES})
