@@ -6,8 +6,6 @@ set (VENDORS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/vendors)
 set (VENDORS_BINARY_DIR ${PROJECT_BINARY_DIR}/vendors)
 add_subdirectory(vendors)
 
-list (APPEND GMON_VENDORS_INCLUDES ${PROJECT_SOURCE_DIR}/vendors/nvidia/nvml/include)
-list (APPEND GMON_VENDORS_INCLUDES ${PROJECT_SOURCE_DIR}/vendors/pahomqtt/include)
 # own contributions to vendor libraries
 list (APPEND GMON_VENDORS_INCLUDES ${PROJECT_SOURCE_DIR}/contrib/spdlog/include)
 
