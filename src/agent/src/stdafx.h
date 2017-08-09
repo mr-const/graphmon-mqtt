@@ -1,4 +1,6 @@
 #include <set>
+#include <agents.h>
+#include <cpprest/json.h>
 
 #undef ERROR
 #include "gflags/gflags.h"

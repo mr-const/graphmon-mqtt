@@ -1,4 +1,5 @@
 #include <stdafx.h>
+#include <functional>
 
 MqttManager* MqttManager::_class = nullptr;
 
@@ -19,23 +20,31 @@ void MqttManager::destroy()
 	_class = nullptr;
 }
 
-bool MqttManager::connect()
+pplx::task<void> MqttManager::connect()
 {
 	int rc;
+
+	concurrency::task_completion_event<void> tce;
+
 	MQTTAsync_connectOptions conn_opts = MQTTAsync_connectOptions_initializer;
 	conn_opts.keepAliveInterval = 20;
 	conn_opts.cleansession = 1;
-	conn_opts.onSuccess = _onConnect;
+	conn_opts.onSuccess = std::bind1st<void>([&tce](void* context, MQTTAsync_successData* response) {
+	
+	});
 	conn_opts.onFailure = _onConnectFailure;
 	conn_opts.context = _class->_client;
+
 	if ((rc = MQTTAsync_connect(_class->_client, &conn_opts)) != MQTTASYNC_SUCCESS)
 	{
 		logger->info("Failed to start connect: {}", rc);
 		_class->_disconnected = true;
-		return false;
+		// TODO introduce custom exception
+		throw std::exception("failed to start connect");
 	}
+
 	logger->info("MQTT Connection to broker started");
-	return true;
+	return pplx::task<void>(tce);
 }
 
 void MqttManager::publish(const std::string& topic, const std::string& payload)
