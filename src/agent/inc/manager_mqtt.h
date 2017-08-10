@@ -8,6 +8,7 @@ public:
 	{
 		std::string connString;
 		std::string clientId;
+		uint32_t mqttMessageTimeout;
 	};
 
 	typedef void(*ConnectHandler)();
@@ -16,20 +17,17 @@ public:
 	static bool create(const InitParams& params);
 	static void destroy();
 
-	static pplx::task<void> connect();
+	static pplx::task<bool> connect();
 	static bool disconnect();
 
-	static void publish(const std::string& topic, const std::string& payload);
+	static pplx::task<bool> publish(const std::string& topic, const std::string& payload);
 private:
 	static MqttManager* _class;
-	MQTTAsync _client;
+	InitParams _params;
+	void* _client;
 	bool _disconnected;
 
 	MqttManager(const InitParams& params);
-	static void _onConnect(void* context, MQTTAsync_successData* response);
-	static int _messageArrived(void* context, char* topicName, int topicLen, MQTTAsync_message* message);
-	static void _onConnectionLost(void *context, char *cause);
-	static void _onConnectFailure(void* context, MQTTAsync_failureData* response);
 };
 
 #endif // manager_mqtt_h__

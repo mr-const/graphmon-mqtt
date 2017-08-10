@@ -10,6 +10,7 @@ struct AppConfig
 	std::string connectionString;
 	std::string clientId;
 	uint32_t telemetryInterval;
+	uint32_t mqttMessageTimeout; // in seconds
 };
 
 void onNvmlDataReceived(const NvmlManager::Data& data)
@@ -17,8 +18,9 @@ void onNvmlDataReceived(const NvmlManager::Data& data)
 	MqttManager::publish("gpu0", data.toJson());
 }
 
-void onTelemetry(int)
+void runTelemetry(int p)
 {
+	(void)p;
 	NvmlManager::readAll();
 }
 
@@ -46,7 +48,10 @@ AppConfig _loadAppConfig()
 	AppConfig config;
 	config.connectionString = "tcp://raspberrypi.lan:1883";
 	config.clientId = "Graphmon";
-	config.telemetryInterval = 10 * 1000;
+	config.telemetryInterval = 10;
+	config.mqttMessageTimeout = 10;
+
+	return config;
 }
 
 void _executeMessageLoop()
@@ -81,22 +86,20 @@ int main(int argc, char * const argv[])
 	MqttManager::InitParams params;
 	params.connString = cfg.connectionString;
 	params.clientId = cfg.clientId;
+	params.mqttMessageTimeout = cfg.mqttMessageTimeout;
 	MqttManager::create(params);
 
 	NvmlManager::create();
 	NvmlManager::init();
 
-	auto yield = new concurrency::call<int>(onTelemetry);
+	auto yield = new concurrency::call<int>(runTelemetry);
 
-	auto telemetryTimer = new concurrency::timer<int>(cfg.telemetryInterval, 0, yield, true);
+	auto telemetryTimer = new concurrency::timer<int>(cfg.telemetryInterval*1000, 0, yield, true);
 
-	MqttManager::connect()->then([=]() {
+	MqttManager::connect().then([=](bool) {
+		runTelemetry(0);
 		telemetryTimer->start();
 	});
-
-
-	telemetryTimer->start();
-
 
 	_executeMessageLoop();
 
