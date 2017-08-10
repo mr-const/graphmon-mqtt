@@ -14,30 +14,31 @@ public:
 		std::string name;
 
 		std::string toJson() const;
+		Data():
+			temperature(0),
+			graphicClock(0),
+			memClock(0),
+			fanSpeed(0),
+			power(0),
+			name("")
+		{
+		}
 	};
-
-	typedef void (*DataReceiver)(const NvmlManager::Data&);
 
 	static bool create();
 	static void destroy();
 
 	static bool init();
+	static void term();
 
-	static bool readAll();
+	static pplx::task< std::vector<Data> > readAll();
 
-	static bool readByIndex(uint32_t idx);
-	static bool readByHandle(nvmlDevice_t handle);
-
-	static void subscribeToData(DataReceiver receiver);
-	static void unsubscribeToData(DataReceiver receiver);
+	static Data readByIndex(uint32_t idx);
+	static Data readByHandle(nvmlDevice_t handle);
 
 private:
 	static NvmlManager* _class;
 	uint32_t _gpuCount;
-
-	std::set<DataReceiver> _dataSubscribers;
-
-	void _notifyData(const Data& data);
 
 	NvmlManager();
 

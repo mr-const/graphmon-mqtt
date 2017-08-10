@@ -69,42 +69,43 @@ bool NvmlManager::init()
 	return true;
 }
 
-void NvmlManager::_notifyData(const Data& data)
+void NvmlManager::term()
 {
-	std::for_each(_dataSubscribers.begin(), _dataSubscribers.end(), [=](auto sub) 
-	{
-		sub(data);
-	});
+	nvmlShutdown();
 }
 
 NvmlManager::NvmlManager()
 {
 }
 
-bool NvmlManager::readAll()
+pplx::task< std::vector<NvmlManager::Data> > NvmlManager::readAll()
 {
-	for (uint32_t nGpu = 0; nGpu < _class->_gpuCount; nGpu++)
-	{
-		readByIndex(nGpu);
-	}
+	return pplx::create_task([]() {
+		std::vector<Data> result;
+		for (uint32_t nGpu = 0; nGpu < _class->_gpuCount; nGpu++)
+		{
+			result.push_back(readByIndex(nGpu));
+		}
 
-	return true;
+		return result;
+	});
 }
 
-bool NvmlManager::readByIndex(uint32_t idx)
+NvmlManager::Data NvmlManager::readByIndex(uint32_t idx)
 {
 	nvmlDevice_t handle;
 	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(idx, &handle);
 	if (result != NVML_SUCCESS)
 	{
 		logger->error("Failed obtain NVidia device handle: {}", nvresult(result));
-		return false;
+		Data d; d.name = "Unknown NVidia Device";
+		return d;
 	}
 
 	return readByHandle(handle);
 }
 
-bool NvmlManager::readByHandle(nvmlDevice_t handle)
+NvmlManager::Data NvmlManager::readByHandle(nvmlDevice_t handle)
 {
 	Data data;
 	char name[NVML_DEVICE_NAME_BUFFER_SIZE];
@@ -137,19 +138,7 @@ bool NvmlManager::readByHandle(nvmlDevice_t handle)
 		logger->error("Failed to retrieve power use: {}", nvresult(result));
 	}
 
-	_class->_notifyData(data);
-
-	return true;
-}
-
-void NvmlManager::subscribeToData(DataReceiver receiver)
-{
-	_class->_dataSubscribers.insert(receiver);
-}
-
-void NvmlManager::unsubscribeToData(DataReceiver receiver)
-{
-	_class->_dataSubscribers.erase(receiver);
+	return data;
 }
 
 std::string NvmlManager::Data::toJson() const

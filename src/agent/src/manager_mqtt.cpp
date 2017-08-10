@@ -33,6 +33,11 @@ _disconnected(true)
 	logger->info("MQTT Manager created");
 }
 
+MqttManager::~MqttManager()
+{
+	MQTTClient_destroy((MQTTClient*)_client);
+}
+
 pplx::task<bool> MqttManager::connect()
 {
 	return pplx::create_task([]() {
@@ -50,6 +55,20 @@ pplx::task<bool> MqttManager::connect()
 		}
 
 		logger->info("MQTT Connected to broker");
+		return true;
+	});
+}
+
+pplx::task<bool> MqttManager::disconnect()
+{
+	return pplx::create_task([]() {
+		int rc;
+		if ((rc = MQTTClient_disconnect(_class->_client, _class->_params.mqttMessageTimeout)) != MQTTCLIENT_SUCCESS)
+		{
+			logger->error("failed to disconnect {}", rc);
+			return false;
+		}
+
 		return true;
 	});
 }
@@ -74,7 +93,7 @@ pplx::task<bool> MqttManager::publish(const std::string& topic, const std::strin
 			return false;
 		}
 
-		if (rc = MQTTClient_waitForCompletion(_class->_client, token, _class->_params.mqttMessageTimeout * 1000) != MQTTCLIENT_SUCCESS)
+		if ((rc = MQTTClient_waitForCompletion(_class->_client, token, _class->_params.mqttMessageTimeout * 1000)) != MQTTCLIENT_SUCCESS)
 		{
 			logger->error("Wait for completion failed: {}", rc);
 			return false;

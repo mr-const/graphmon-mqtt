@@ -18,7 +18,7 @@ public:
 	static void destroy();
 
 	static pplx::task<bool> connect();
-	static bool disconnect();
+	static pplx::task<bool> disconnect();
 
 	static pplx::task<bool> publish(const std::string& topic, const std::string& payload);
 private:
@@ -28,6 +28,7 @@ private:
 	bool _disconnected;
 
 	MqttManager(const InitParams& params);
+	~MqttManager();
 };
 
 #endif // manager_mqtt_h__

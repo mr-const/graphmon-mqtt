@@ -13,15 +13,15 @@ struct AppConfig
 	uint32_t mqttMessageTimeout; // in seconds
 };
 
-void onNvmlDataReceived(const NvmlManager::Data& data)
-{
-	MqttManager::publish("gpu0", data.toJson());
-}
-
 void runTelemetry(int p)
 {
 	(void)p;
-	NvmlManager::readAll();
+	NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
+		for (int i = 0; i < data.size(); i++)
+		{
+			MqttManager::publish("gpu" + std::to_string(i), data[i].toJson());
+		}
+	});
 }
 
 
@@ -105,6 +105,12 @@ int main(int argc, char * const argv[])
 
 	telemetryTimer->stop();
 	delete telemetryTimer;
+
+	MqttManager::disconnect().wait();
+	MqttManager::destroy();
+
+	NvmlManager::term();
+	NvmlManager::destroy();
 
 	return 0;
 }
