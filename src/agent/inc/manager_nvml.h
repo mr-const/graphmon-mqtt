@@ -11,16 +11,16 @@ public:
 		uint32_t memClock;
 		uint32_t fanSpeed;
 		uint32_t power;
-		std::string name;
+		utility::string_t name;
 
-		std::string toJson() const;
+		utility::string_t toJson() const;
 		Data():
 			temperature(0),
 			graphicClock(0),
 			memClock(0),
 			fanSpeed(0),
 			power(0),
-			name("")
+			name(U(""))
 		{
 		}
 	};

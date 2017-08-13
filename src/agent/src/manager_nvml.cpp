@@ -98,7 +98,7 @@ NvmlManager::Data NvmlManager::readByIndex(uint32_t idx)
 	if (result != NVML_SUCCESS)
 	{
 		logger->error("Failed obtain NVidia device handle: {}", nvresult(result));
-		Data d; d.name = "Unknown NVidia Device";
+		Data d; d.name = U("Unknown NVidia Device");
 		return d;
 	}
 
@@ -110,7 +110,7 @@ NvmlManager::Data NvmlManager::readByHandle(nvmlDevice_t handle)
 	Data data;
 	char name[NVML_DEVICE_NAME_BUFFER_SIZE];
 	nvmlReturn_t result = nvmlDeviceGetName(handle, name, NVML_DEVICE_NAME_BUFFER_SIZE);
-	data.name = name;
+	data.name = utility::conversions::to_string_t(name);
 
 	result = nvmlDeviceGetTemperature(handle, nvmlTemperatureSensors_t::NVML_TEMPERATURE_GPU, &data.temperature);
 	if (result != NVML_SUCCESS)
@@ -141,17 +141,17 @@ NvmlManager::Data NvmlManager::readByHandle(nvmlDevice_t handle)
 	return data;
 }
 
-std::string NvmlManager::Data::toJson() const
+utility::string_t NvmlManager::Data::toJson() const
 {
-	std::stringstream ss;
-	ss << "{ ";
-	ss << "temperature: " << temperature << ", ";
-	ss << "graphClock: " << graphicClock << ", ";
-	ss << "memClock: " << memClock << ", ";
-	ss << "fanSpeed: " << fanSpeed << ", ";
-	ss << "power: " << power << ", ";
-	ss << "name : \"" << name << "\"";
-	ss << " }";
+	using namespace web;
+	json::value obj;
 
-	return ss.str();
+	obj[U("temperature")] = json::value::number(temperature);
+	obj[U("graphClock")] = json::value::number(graphicClock);
+	obj[U("memClock")] = json::value::number(memClock);
+	obj[U("fanSpeed")] = json::value::number(fanSpeed);
+	obj[U("power")] = json::value::number(power);
+	obj[U("name")] = json::value::string(name);
+
+	return obj.serialize();
 }

@@ -42,7 +42,7 @@ if(MSVC)
 
 endif(MSVC)
 
-add_definitions(-DUNICODE -D_UNICODE)
+add_definitions(-DUNICODE -D_UNICODE -D_NO_ASYNCRTIMP)
 
 IF (WIN32)
   SET(OPENSSL_SEARCH_PATH "C:/OpenSSL-Win64")
@@ -53,4 +53,4 @@ FIND_LIBRARY(OPENSSL_LIB NAMES ssl libssl ssleay32
 FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
     HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
 
-target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} ws2_32)
+target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ws2_32)

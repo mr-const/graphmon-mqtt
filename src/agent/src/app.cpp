@@ -10,6 +10,7 @@ struct AppConfig
 	std::string connectionString;
 	std::string clientId;
 	uint32_t telemetryInterval;
+	std::string mqttTopicName;
 	uint32_t mqttMessageTimeout; // in seconds
 };
 
@@ -19,7 +20,7 @@ void runTelemetry(int p)
 	NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
 		for (int i = 0; i < data.size(); i++)
 		{
-			MqttManager::publish("gpu" + std::to_string(i), data[i].toJson());
+			MqttManager::publish("gpu" + std::to_string(i), utility::conversions::to_utf8string(data[i].toJson()));
 		}
 	});
 }
@@ -49,6 +50,7 @@ AppConfig _loadAppConfig()
 	config.connectionString = "tcp://raspberrypi.lan:1883";
 	config.clientId = "Graphmon";
 	config.telemetryInterval = 10;
+	config.mqttTopicName = "homepc";
 	config.mqttMessageTimeout = 10;
 
 	return config;
@@ -87,6 +89,7 @@ int main(int argc, char * const argv[])
 	params.connString = cfg.connectionString;
 	params.clientId = cfg.clientId;
 	params.mqttMessageTimeout = cfg.mqttMessageTimeout;
+	params.topicName = cfg.mqttTopicName;
 	MqttManager::create(params);
 
 	NvmlManager::create();

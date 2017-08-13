@@ -8,6 +8,7 @@ public:
 	{
 		std::string connString;
 		std::string clientId;
+		std::string topicName;
 		uint32_t mqttMessageTimeout;
 	};
 
