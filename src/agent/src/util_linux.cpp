@@ -1,3 +1,9 @@
+#include <stdint.h>
+#include <time.h>
+#include <sys/times.h>
+#include <sys/time.h>
+#include <unistd.h>
+
 uint32_t getTimeMS()
 {
 	struct tms t;
@@ -7,5 +13,5 @@ uint32_t getTimeMS()
 
 	uint32_t uptime = ticksPerMs != 0.f ? static_cast<uint32_t>(ticks / ticksPerMs) : 0;
 
-	return uptime - _timeAppStart;
+	return uptime;
 }

@@ -68,4 +68,18 @@ FIND_LIBRARY(OPENSSL_LIB NAMES ssl libssl ssleay32
 FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
     HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
 
-target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ws2_32 winmm)
+if (WIN32)
+  SET(LIB_PLATFORM
+    nvml
+    paho-mqtt3cs
+    ws2_32
+    winmm
+    )
+elseif (UNIX)
+  SET(LIB_PLATFORM
+        nvidia-ml
+	paho-mqtt3cs
+    )
+endif()
+
+target_link_libraries (${TARGET_NAME} gflags ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ${LIB_PLATFORM})
