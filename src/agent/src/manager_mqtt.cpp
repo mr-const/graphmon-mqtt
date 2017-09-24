@@ -56,6 +56,7 @@ pplx::task<bool> MqttManager::connect()
 		}
 
 		logger->info("MQTT Connected to broker");
+		_class->_disconnected = false;
 		return true;
 	});
 }
