@@ -1,4 +1,4 @@
-set (TARGET_NAME agent)
+set(TARGET_NAME agent)
 
 project(${TARGET_NAME})
 
@@ -7,7 +7,7 @@ generate_build_info(
     "${PROJECT_BINARY_DIR}/buildversion.h"
 )
 
-set (SOURCES 
+set(SOURCES 
 	src/app.cpp
 	src/app.h
 	src/stdafx.cpp
@@ -17,24 +17,25 @@ set (SOURCES
 	src/manager_nvml.cpp
 	inc/manager_mqtt.h
 	inc/manager_nvml.h
-	res/version.rc)
+	res/version.rc
+	)
 
-if (WIN32)
+if(WIN32)
     set (SOURCES_PLATFORM
-        src/util_win.cpp
+         src/util_win.cpp
     )
-elseif (UNIX)
+elseif(UNIX)
     set (SOURCES_PLATFORM
-        src/util_linux.cpp
+         src/util_linux.cpp
     )
-endif ()
+endif()
 
 add_executable(${TARGET_NAME} ${SOURCES} ${SOURCES_PLATFORM})
 
-target_include_directories (${TARGET_NAME}
+target_include_directories(${TARGET_NAME}
     PRIVATE ${GMON_VENDORS_INCLUDES}
 )
-target_include_directories (${TARGET_NAME}
+target_include_directories(${TARGET_NAME}
     PRIVATE ${GMON_PROJECT_INCLUDES}
 )
 
@@ -53,33 +54,33 @@ if(MSVC)
 
 endif(MSVC)
 
-if (UNIX)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
+if(UNIX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
 endif(UNIX)
 
 add_definitions(-DUNICODE -D_UNICODE -D_NO_ASYNCRTIMP)
 
-IF (WIN32)
-  SET(OPENSSL_SEARCH_PATH "C:/OpenSSL-Win64")
-ENDIF ()
+if(WIN32)
+  set(OPENSSL_SEARCH_PATH "C:/OpenSSL-Win64")
+endif()
 
 FIND_LIBRARY(OPENSSL_LIB NAMES ssl libssl ssleay32
     HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
 FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
     HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
 
-if (WIN32)
-  SET(LIB_PLATFORM
-    nvml
-    paho-mqtt3cs
-    ws2_32
-    winmm
-    )
-elseif (UNIX)
-  SET(LIB_PLATFORM
-        nvidia-ml
-	paho-mqtt3cs
-    )
+if(WIN32)
+  set(LIB_PLATFORM
+      nvml
+      paho-mqtt3cs
+      ws2_32
+      winmm
+   )
+elseif(UNIX)
+  set(LIB_PLATFORM
+      nvidia-ml
+	  paho-mqtt3cs
+  )
 endif()
 
 target_link_libraries (${TARGET_NAME} gflags ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ${LIB_PLATFORM})
