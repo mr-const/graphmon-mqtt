@@ -3,7 +3,11 @@
 #if defined(_WIN32)
 #include "spdlog/sinks/wincolor_sink.h"
 #include "spdlog/sinks/msvc_sink.h"
+#else
+#include <unistd.h>
+#include "spdlog/sinks/ansicolor_sink.h"
 #endif
+
 #include "spdlog/sinks/file_sinks.h"
 #include "spdlog/logger.h"
 
@@ -43,6 +47,9 @@ void _initLoggers()
 	auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink<std::mutex>>();
 	sinks.push_back(color_sink);
 	sinks.push_back(msvc_sink);
+#else
+	auto stdout_sink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink<std::mutex>>();
+	sinks.push_back(stdout_sink);
 #endif
 	// Add more sinks here, if needed.
 #undef logger
@@ -96,12 +103,12 @@ AppConfig _loadAppConfig()
 	return config;
 }
 
+#if defined (_WIN32)
 void _executeMessageLoop(uint32_t telemetryInterval)
 {
 	MSG msg;
-
 	int32_t delay = 0;
-	uint32_t prevTime = getTimeMS();
+	TimeCounter tc;
 
 	while (1)
 	{
@@ -125,17 +132,36 @@ void _executeMessageLoop(uint32_t telemetryInterval)
 		}
 		else
 		{
-			uint32_t now = getTimeMS();
-			uint32_t dt = now - prevTime;
-			prevTime = now;
-
-			delay -= dt;
+			delay -= tc.advance();
 		}
 
 
 		Sleep(100);
 	}
 }
+#else
+void _executeMessageLoop(uint32_t telemetryInterval)
+{
+	int32_t delay = 0;
+	TimeCounter tc;
+
+	while (1)
+	{
+		if (delay <= 0)
+		{
+			runTelemetry(0);
+			delay = telemetryInterval * 1000;
+		}
+		else
+		{
+			delay -= tc.advance();
+		}
+
+
+		usleep(100*1000);
+	}
+}
+#endif
 
 int main(int argc, char * const argv[])
 {
