@@ -1,5 +1,4 @@
 #include <set>
-#include <agents.h>
 #include <cpprest/json.h>
 
 #undef ERROR
@@ -12,3 +11,5 @@
 
 #include "agent/inc/manager_mqtt.h"
 #include "agent/inc/manager_nvml.h"
+
+#include "util.h"

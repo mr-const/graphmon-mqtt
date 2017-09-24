@@ -12,13 +12,24 @@ set (SOURCES
 	src/app.h
 	src/stdafx.cpp
 	src/stdafx.h
+	src/util.h
 	src/manager_mqtt.cpp
 	src/manager_nvml.cpp
 	inc/manager_mqtt.h
 	inc/manager_nvml.h
 	res/version.rc)
 
-add_executable(${TARGET_NAME} ${SOURCES})
+if (WIN32)
+    set (SOURCES_PLATFORM
+        src/util_win.cpp
+    )
+elseif (LINUX)
+    set (SOURCES_PLATFORM
+        src/util_linux.cpp
+    )
+endif ()
+
+add_executable(${TARGET_NAME} ${SOURCES} ${SOURCES_PLATFORM})
 
 target_include_directories (${TARGET_NAME}
     PRIVATE ${GMON_VENDORS_INCLUDES}
@@ -53,4 +64,4 @@ FIND_LIBRARY(OPENSSL_LIB NAMES ssl libssl ssleay32
 FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
     HINTS ${OPENSSL_SEARCH_PATH}/lib ${OPENSSL_SEARCH_PATH}/lib64)
 
-target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ws2_32)
+target_link_libraries (${TARGET_NAME} gflags nvml paho-mqtt3cs ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ws2_32 winmm)

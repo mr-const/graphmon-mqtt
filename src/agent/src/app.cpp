@@ -93,9 +93,12 @@ AppConfig _loadAppConfig()
 	return config;
 }
 
-void _executeMessageLoop()
+void _executeMessageLoop(uint32_t telemetryInterval)
 {
 	MSG msg;
+
+	int32_t delay = 0;
+	uint32_t prevTime = getTimeMS();
 
 	while (1)
 	{
@@ -111,6 +114,21 @@ void _executeMessageLoop()
 
 		if (msg.message == WM_QUIT)
 			break;
+
+		if (delay <= 0)
+		{
+			runTelemetry(0);
+			delay = telemetryInterval * 1000;
+		}
+		else
+		{
+			uint32_t now = getTimeMS();
+			uint32_t dt = now - prevTime;
+			prevTime = now;
+
+			delay -= dt;
+		}
+
 
 		Sleep(100);
 	}
@@ -132,19 +150,9 @@ int main(int argc, char * const argv[])
 	NvmlManager::create();
 	NvmlManager::init();
 
-	auto yield = new concurrency::call<int>(runTelemetry);
+	MqttManager::connect().wait();
 
-	auto telemetryTimer = new concurrency::timer<int>(cfg.telemetryInterval*1000, 0, yield, true);
-
-	MqttManager::connect().then([=](bool) {
-		runTelemetry(0);
-		telemetryTimer->start();
-	});
-
-	_executeMessageLoop();
-
-	telemetryTimer->stop();
-	delete telemetryTimer;
+	_executeMessageLoop(cfg.telemetryInterval);
 
 	MqttManager::disconnect().wait();
 	MqttManager::destroy();
