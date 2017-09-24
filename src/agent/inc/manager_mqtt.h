@@ -6,9 +6,9 @@ class MqttManager
 public:
 	struct InitParams
 	{
-		std::string connString;
-		std::string clientId;
-		std::string topicName;
+		utility::string_t connString;
+		utility::string_t clientId;
+		utility::string_t topicName;
 		uint32_t mqttMessageTimeout;
 	};
 
@@ -20,6 +20,11 @@ public:
 
 	static pplx::task<bool> connect();
 	static pplx::task<bool> disconnect();
+
+	static bool isConnected()
+	{
+		return !_class->_disconnected;
+	}
 
 	static pplx::task<bool> publish(const std::string& topic, const std::string& payload);
 private:

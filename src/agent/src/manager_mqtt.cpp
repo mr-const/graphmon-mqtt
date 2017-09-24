@@ -25,7 +25,7 @@ _disconnected(true),
 _params(params)
 {
 	int rc;
-	rc = MQTTClient_create(&_client, _params.connString.c_str(), _params.clientId.c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL);
+	rc = MQTTClient_create(&_client, utility::conversions::to_utf8string(_params.connString).c_str(), utility::conversions::to_utf8string(_params.clientId).c_str(), MQTTCLIENT_PERSISTENCE_NONE, NULL);
 	if (rc != MQTTCLIENT_SUCCESS)
 	{
 		logger->error("Failed to create MQTT client");
@@ -70,13 +70,14 @@ pplx::task<bool> MqttManager::disconnect()
 			return false;
 		}
 
+		_class->_disconnected = true;
 		return true;
 	});
 }
 
 pplx::task<bool> MqttManager::publish(const std::string& topic, const std::string& payload)
 {
-	std::string fullTopic = "tele/" + _class->_params.topicName + "/" + topic;
+	std::string fullTopic = "tele/" + utility::conversions::to_utf8string(_class->_params.topicName) + "/" + topic;
 	logger->info("mqtt publish: {} - {}", fullTopic, payload);
 	return pplx::create_task([=]() {
 		MQTTClient_message pubmsg = MQTTClient_message_initializer;
@@ -92,12 +93,14 @@ pplx::task<bool> MqttManager::publish(const std::string& topic, const std::strin
 		if ((rc = MQTTClient_publishMessage(_class->_client, fullTopic.c_str(), &pubmsg, &token)) != MQTTCLIENT_SUCCESS)
 		{
 			logger->error("Failed to publish message: {}", rc);
+			_class->_disconnected = true;
 			return false;
 		}
 
 		if ((rc = MQTTClient_waitForCompletion(_class->_client, token, _class->_params.mqttMessageTimeout * 1000)) != MQTTCLIENT_SUCCESS)
 		{
 			logger->error("Wait for completion failed: {}", rc);
+			_class->_disconnected = true;
 			return false;
 		}
 		logger->debug("Message with delivery token {} delivered", token);

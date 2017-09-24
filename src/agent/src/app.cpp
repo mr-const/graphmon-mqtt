@@ -7,22 +7,29 @@
 
 struct AppConfig
 {
-	std::string connectionString;
-	std::string clientId;
+	utility::string_t connectionString;
+	utility::string_t clientId;
 	uint32_t telemetryInterval;
-	std::string mqttTopicName;
+	utility::string_t mqttTopicName;
 	uint32_t mqttMessageTimeout; // in seconds
 };
 
 void runTelemetry(int p)
 {
 	(void)p;
-	NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
-		for (int i = 0; i < data.size(); i++)
-		{
-			MqttManager::publish("gpu" + std::to_string(i), utility::conversions::to_utf8string(data[i].toJson()));
-		}
-	});
+
+	if (MqttManager::isConnected()) {
+		NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
+			for (int i = 0; i < data.size(); i++)
+			{
+				MqttManager::publish("gpu" + std::to_string(i), utility::conversions::to_utf8string(data[i].toJson()));
+			}
+		});
+	}
+	else {
+		logger->warn("Not connected. Read skipped, attempting reconnect");
+		MqttManager::connect();
+	}
 }
 
 
@@ -45,12 +52,42 @@ void _initLoggers()
 
 AppConfig _loadAppConfig()
 {
-	// TODO: read from JSON config file (local dir, appdata dir)
+	using namespace utility;
+	
 	AppConfig config;
-	config.connectionString = "tcp://raspberrypi.lan:1883";
-	config.clientId = "Graphmon";
+
+	ifstream_t ifs;
+	ifs.open(U("config.json"), ifstream_t::in);
+
+	if (ifs)
+	{
+		try
+		{
+			auto jsonConfig = web::json::value::parse(ifs);
+			config.connectionString = jsonConfig.at(U("connectionString")).as_string();
+			config.clientId = jsonConfig.at(U("clientId")).as_string();
+			config.telemetryInterval = jsonConfig.at(U("telemetryInterval")).as_number().to_uint32();
+			config.mqttTopicName = jsonConfig.at(U("mqttTopicName")).as_string();
+			config.mqttMessageTimeout = jsonConfig.at(U("mqttMessageTimeout")).as_number().to_uint32();
+			spdlog::get("COMMONLOG")->info("Loaded config file");
+			return config;
+		}
+		catch (std::exception& e)
+		{
+			spdlog::get("COMMONLOG")->info("error while reading config file: {}", e.what());
+		}
+	}
+	else 
+	{
+		spdlog::get("COMMONLOG")->info("failed to open config file");
+	}
+
+	spdlog::get("COMMONLOG")->info("Loading sane defaults");
+
+	config.connectionString = U("tcp://raspberrypi.lan:1883");
+	config.clientId = U("Graphmon");
 	config.telemetryInterval = 10;
-	config.mqttTopicName = "homepc";
+	config.mqttTopicName = U("graphmon");
 	config.mqttMessageTimeout = 10;
 
 	return config;

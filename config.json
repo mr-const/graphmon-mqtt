@@ -1,0 +1,7 @@
+{
+	"connectionString": "tcp://raspberrypi.lan:1883",
+	"clientId": "Graphmon",
+	"telemetryInterval": 10,
+	"mqttTopicName": "homepc",
+	"mqttMessageTimeout": 10
+}
