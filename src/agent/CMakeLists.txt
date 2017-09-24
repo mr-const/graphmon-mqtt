@@ -23,7 +23,7 @@ if (WIN32)
     set (SOURCES_PLATFORM
         src/util_win.cpp
     )
-elseif (LINUX)
+elseif (UNIX)
     set (SOURCES_PLATFORM
         src/util_linux.cpp
     )
@@ -52,6 +52,10 @@ if(MSVC)
 	    PROPERTIES COMPILE_FLAGS "/Ycstdafx.h")
 
 endif(MSVC)
+
+if (UNIX)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x")
+endif(UNIX)
 
 add_definitions(-DUNICODE -D_UNICODE -D_NO_ASYNCRTIMP)
 

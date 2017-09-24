@@ -1,8 +1,10 @@
 #include <stdafx.h>
 
+#if defined(_WIN32)
 #include "spdlog/sinks/wincolor_sink.h"
-#include "spdlog/sinks/file_sinks.h"
 #include "spdlog/sinks/msvc_sink.h"
+#endif
+#include "spdlog/sinks/file_sinks.h"
 #include "spdlog/logger.h"
 
 struct AppConfig
@@ -36,11 +38,12 @@ void runTelemetry(int p)
 void _initLoggers()
 {
 	std::vector<spdlog::sink_ptr> sinks;
+#if defined(_WIN32)
 	auto color_sink = std::make_shared<spdlog::sinks::wincolor_stdout_sink<std::mutex>>();
 	auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink<std::mutex>>();
-
 	sinks.push_back(color_sink);
 	sinks.push_back(msvc_sink);
+#endif
 	// Add more sinks here, if needed.
 #undef logger
 	auto combined_logger = std::make_shared<spdlog::logger>("COMMONLOG", begin(sinks), end(sinks));
