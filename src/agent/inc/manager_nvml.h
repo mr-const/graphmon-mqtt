@@ -36,6 +36,10 @@ public:
 	static Data readByIndex(uint32_t idx);
 	static Data readByHandle(nvmlDevice_t handle);
 
+	static bool available()
+	{
+		return _class != nullptr;
+	}
 private:
 	static NvmlManager* _class;
 	uint32_t _gpuCount;

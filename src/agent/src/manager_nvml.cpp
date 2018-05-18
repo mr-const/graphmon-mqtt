@@ -15,6 +15,13 @@ bool NvmlManager::create()
 {
 	if (_class == nullptr)
 	{
+		HMODULE hm = LoadLibrary(L"nvml.dll");
+		if (!hm)
+		{
+			logger->info("NVML not found, ignoring nVidia API");
+			return false;
+		}
+
 		_class = new NvmlManager();
 		return true;
 	}
@@ -31,6 +38,7 @@ void NvmlManager::destroy()
 bool NvmlManager::init()
 {
 	nvmlReturn_t result = nvmlInit();
+
 	if (result != NVML_SUCCESS)
 	{
 		logger->error("Failed to initialize NVML: {}", nvresult(result));

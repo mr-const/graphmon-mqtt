@@ -44,7 +44,7 @@ include_directories(src)
 include_directories("${PROJECT_BINARY_DIR}")
 
 if(MSVC)
-	set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+	set_target_properties(${TARGET_NAME} PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE /DELAYLOAD:nvml.dll")
 	target_compile_options (${TARGET_NAME}
     	PRIVATE /MP
 	)
@@ -72,6 +72,7 @@ FIND_LIBRARY(OPENSSLCRYPTO_LIB NAMES crypto libcrypto libeay32
 if(WIN32)
   set(LIB_PLATFORM
       nvml
+      Delayimp
       paho-mqtt3cs
       ws2_32
       winmm
@@ -82,5 +83,4 @@ elseif(UNIX)
 	  paho-mqtt3cs
   )
 endif()
-
 target_link_libraries (${TARGET_NAME} gflags ${OPENSSL_LIB} ${OPENSSLCRYPTO_LIB} cpprest ${LIB_PLATFORM})

@@ -25,12 +25,15 @@ void runTelemetry(int p)
 	(void)p;
 
 	if (MqttManager::isConnected()) {
-		NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
-			for (int i = 0; i < data.size(); i++)
-			{
-				MqttManager::publish("gpu" + std::to_string(i), utility::conversions::to_utf8string(data[i].toJson()));
-			}
-		});
+
+		if (NvmlManager::available()) {
+			NvmlManager::readAll().then([](const std::vector<NvmlManager::Data>& data) {
+				for (int i = 0; i < data.size(); i++)
+				{
+					MqttManager::publish("gpu" + std::to_string(i), utility::conversions::to_utf8string(data[i].toJson()));
+				}
+			});
+		}
 	}
 	else {
 		logger->warn("Not connected. Read skipped, attempting reconnect");
@@ -84,15 +87,15 @@ AppConfig _loadAppConfig()
 		}
 		catch (std::exception& e)
 		{
-			spdlog::get("COMMONLOG")->info("error while reading config file: {}", e.what());
+			spdlog::get("COMMONLOG")->warn("error while reading config file: {}", e.what());
 		}
 	}
 	else 
 	{
-		spdlog::get("COMMONLOG")->info("failed to open config file");
+		spdlog::get("COMMONLOG")->warn("failed to open config file");
 	}
 
-	spdlog::get("COMMONLOG")->info("Loading sane defaults");
+	spdlog::get("COMMONLOG")->warn("Loading sane defaults");
 
 	config.connectionString = U("tcp://raspberrypi.lan:1883");
 	config.clientId = U("Graphmon");
@@ -177,7 +180,8 @@ int main(int argc, char * const argv[])
 	MqttManager::create(params);
 
 	NvmlManager::create();
-	NvmlManager::init();
+	if (NvmlManager::available())
+		NvmlManager::init();
 
 	MqttManager::connect().wait();
 
@@ -186,8 +190,11 @@ int main(int argc, char * const argv[])
 	MqttManager::disconnect().wait();
 	MqttManager::destroy();
 
-	NvmlManager::term();
-	NvmlManager::destroy();
+	if (NvmlManager::available())
+	{
+		NvmlManager::term();
+		NvmlManager::destroy();
+	}
 
 	return 0;
 }
