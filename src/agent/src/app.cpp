@@ -37,7 +37,7 @@ void runTelemetry(int p)
 	}
 	else {
 		logger->warn("Not connected. Read skipped, attempting reconnect");
-		MqttManager::connect();
+		MqttManager::connect().wait();
 	}
 }
 
