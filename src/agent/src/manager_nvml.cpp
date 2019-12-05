@@ -15,12 +15,14 @@ bool NvmlManager::create()
 {
 	if (_class == nullptr)
 	{
+#if defined(_WIN32)
 		HMODULE hm = LoadLibrary(L"nvml.dll");
 		if (!hm)
 		{
 			logger->info("NVML not found, ignoring nVidia API");
 			return false;
 		}
+#endif
 
 		_class = new NvmlManager();
 		return true;
