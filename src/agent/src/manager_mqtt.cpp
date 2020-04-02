@@ -48,6 +48,11 @@ pplx::task<bool> MqttManager::connect()
 		conn_opts.keepAliveInterval = 20;
 		conn_opts.cleansession = 1;
 
+		if (!_class->_params.username.empty())
+			conn_opts.username = utility::conversions::to_utf8string(_class->_params.username).c_str();
+        if (!_class->_params.password.empty())
+            conn_opts.password = utility::conversions::to_utf8string(_class->_params.password).c_str();
+
 		if ((rc = MQTTClient_connect(_class->_client, &conn_opts)) != MQTTCLIENT_SUCCESS)
 		{
 			logger->info("Failed to connect: {}", rc);

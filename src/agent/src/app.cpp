@@ -18,6 +18,9 @@ struct AppConfig
 	uint32_t telemetryInterval;
 	utility::string_t mqttTopicName;
 	uint32_t mqttMessageTimeout; // in seconds
+
+	utility::string_t mqttUsername;
+	utility::string_t mqttPassword;
 };
 
 void runTelemetry(int p)
@@ -82,6 +85,12 @@ AppConfig _loadAppConfig()
 			config.telemetryInterval = jsonConfig.at(U("telemetryInterval")).as_number().to_uint32();
 			config.mqttTopicName = jsonConfig.at(U("mqttTopicName")).as_string();
 			config.mqttMessageTimeout = jsonConfig.at(U("mqttMessageTimeout")).as_number().to_uint32();
+
+			if (jsonConfig.has_field(U("username")))
+				config.mqttUsername = jsonConfig.at(U("username")).as_string();
+            if (jsonConfig.has_field(U("password")))
+                config.mqttPassword = jsonConfig.at(U("password")).as_string();
+
 			spdlog::get("COMMONLOG")->info("Loaded config file");
 			return config;
 		}
@@ -177,6 +186,9 @@ int main(int argc, char * const argv[])
 	params.clientId = cfg.clientId;
 	params.mqttMessageTimeout = cfg.mqttMessageTimeout;
 	params.topicName = cfg.mqttTopicName;
+	params.username = cfg.mqttUsername;
+	params.password = cfg.mqttPassword;
+
 	MqttManager::create(params);
 
 	NvmlManager::create();

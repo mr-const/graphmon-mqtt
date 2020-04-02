@@ -9,6 +9,8 @@ public:
 		utility::string_t connString;
 		utility::string_t clientId;
 		utility::string_t topicName;
+		utility::string_t username;
+		utility::string_t password;
 		uint32_t mqttMessageTimeout;
 	};
 
